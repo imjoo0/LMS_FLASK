@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}
+    회원관리
+{% endblock %}
+{% block topnav %}
+    회원관리
+{% endblock %}
+{% block content %}
+    {% autoescape off %}
+    <section id="user">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="card-container ms-auto">
+                    <div class="row pt-5 mt-3 mb-1">
+                        <div class="col-sm-12 p-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="p-3 pb-2"><strong>원생목록</strong></h5>
+                                </div>
+                                <div class="card-body p-5">
+
+                                    <table class="table text-center">
+                                        <thead>
+                                            <tr class="text-muted row">
+                                                <th class="col-2">#</th>
+                                                <th class="col-2">이름</th>
+                                                <th class="col-3">반</th>
+                                                <th class="col-3">연락처</th>
+                                                <th class="col-1">동작</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="row">
+                                                <td class="col-2">1</td>
+                                                <td class="col-2">ㅇㅇㅇ</td>
+                                                <td class="col-3">ㅇㅇㅇㅇㅇ</td>
+                                                <td class="col-3">010-1111-1111</td>
+                                                <td class="col-1">
+                                                    <div class="row justify-content-center">
+                                                        <a class="col-4" href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="edit">
+                                                            <i class="fas fa-edit fa-lg text-success"></i>
+                                                        </a>
+                                                        <a class="col-4" href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="dlete">
+                                                            <i class="fas fa-trash-alt fa-lg text-danger"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <nav>
+                                        <div class="row">
+                                            <ul class="pagination justify-content-center">
+                                                <li class="page-item">
+                                                    <a href="#" class="page-link py-2 px-3">
+                                                        <span>&laquo;</span>
+                                                    </a>
+                                                </li>
+                                                <li class="page-item active">
+                                                    <a href="#" class="page-link py-2 px-3">1</a>
+                                                </li>
+                                                <li class="page-item">
+                                                    <a href="#" class="page-link py-2 px-3">2</a>
+                                                </li>
+                                                <li class="page-item">
+                                                    <a href="#" class="page-link py-2 px-3">3</a>
+                                                </li>
+                                                <li class="page-item">
+                                                    <a href="#" class="page-link py-2 px-3">4</a>
+                                                </li>
+                                                <li class="page-item">
+                                                    <a href="#" class="page-link py-2 px-3">5</a>
+                                                </li>
+                                                <li class="page-item">
+                                                    <a href="#" class="page-link py-2 px-3">
+                                                        <span>&raquo;</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </nav>
+                                </div>
+                                <div class="card-footer">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endautoescape %}
+{% endblock %}
