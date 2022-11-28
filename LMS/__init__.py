@@ -1,3 +1,5 @@
+import traceback
+
 from flask import Flask, render_template, g, Response, make_response, request
 from flask_sqlalchemy import SQLAlchemy
 import pymysql
@@ -10,16 +12,51 @@ from LMS import sql
 # return getarrt(g,'str','111')
 
 app = Flask(__name__)
+
 # app.debug = True
 # db 설정
+# db 설정
 
-@app.route("/")
-def home():
-    return render_template('login.html')
+
+@app.route("/login",methods=['POST','GET'])
+def login():
+    if request.method == 'POST':
+        receive_mobileno = request.form['userid']
+        # teachers = sql.ssh_db_tunneling_select_teachers()
+        with SSHTunnelForwarder(
+                ('15.164.36.206'),
+                ssh_username="ec2-user",
+                ssh_pkey="D:/purple_academy_privkey.pem",
+                remote_bind_address=('purple-lms-mariadb-1.cdpnol1tlujr.ap-northeast-2.rds.amazonaws.com', 3306)
+        ) as tunnel:
+            db = pymysql.connect(
+                host='127.0.0.1', user="readonly",
+                password="purpledbreadonly12!@", port=tunnel.local_bind_port, database='purple-lms'
+            )
+            try:
+                with db.cursor() as cur:
+                    print(receive_mobileno)
+                    cur.execute(f'SELECT * FROM staff WHERE mobileno={receive_mobileno};')
+                    print('he')
+                    rows = cur.fetchall()
+
+                    for row in rows:
+                        print(row)
+                    return render_template('perform.html')
+            except:
+                print(traceback.format_exc())
+                print("fail")
+                return render_template('login.html')
+            finally:
+                db.close()
+    else:
+        return render_template('login.html')
+
 @app.route('/perform',methods=['GET'])
 def perform():
     if request.method == 'GET':
         classes = sql.ssh_db_tunneling_select_class()
+        print(classes)
         return render_template('perform.html',classes)
 
 @app.route('/user')

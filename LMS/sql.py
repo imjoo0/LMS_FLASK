@@ -142,6 +142,45 @@ def ssh_db_tunneling_select_class():
             db.close()
             return data_list
 
+def ssh_db_tunneling_select_teachers():
+    with SSHTunnelForwarder(
+        ('15.164.36.206'),
+        ssh_username="ec2-user",
+        ssh_pkey="D:/purple_academy_privkey.pem",
+        remote_bind_address=('purple-lms-mariadb-1.cdpnol1tlujr.ap-northeast-2.rds.amazonaws.com', 3306)
+    ) as tunnel:
+        print("=== SSH Tunnel ===")
+
+        db = pymysql.connect(
+            host='127.0.0.1', user="readonly",
+            password="purpledbreadonly12!@", port=tunnel.local_bind_port, database='purple-lms'
+        )
+        try:
+            with db.cursor() as cur:
+                # ['id', 'class_type', 'section_id', 'subject_id', 'is_regular', 'name', 'week_auto', 'week', 'start_date', 'end_date', 'name_numeric', 'created_at', 'updated_at', 'branch_id', 'schedule_file_name', 'schedule_enc_name', 'timetable_id', 'is_ended', 'rewriting_class']
+                cur.execute(f'SELECT * FROM staff;;')
+                rows = cur.fetchall()
+                cur.execute(f'SHOW columns FROM staff;')
+                cols = cur.fetchall()
+
+                row_list = []
+                for i in rows:
+                    row_list.append(list(i))
+
+                col_list = []
+                for i in cols:
+                    col_list.append(i[0])
+
+                data_list = []
+                for i in row_list:
+                    data_list.append({name: value for name, value in zip(col_list, i)}.copy())
+
+
+        except:
+            print("fail")
+        finally:
+            db.close()
+            return data_list
 
 def ssh_db_tunneling_select_student():
     with SSHTunnelForwarder(
@@ -293,7 +332,8 @@ def select_todo_list(class_name):
 # a, b = ssh_db_tunneling_select('Pluto Plus B1', 'teacher')
 # a = ssh_db_tunneling_select_class()
 # a, b = ssh_db_tunneling_select_student()
-a = ssh_db_tunneling_select('Pluto Plus B1', 'student')
+# a = ssh_db_tunneling_select_teachers()
+# a = ssh_db_tunneling_select('Pluto Plus B1', 'student')
 # ssh_db_tunneling_select('Pluto Plus B1', 'parents')
 # select_todo_list("ban1")
 # select_consulting("test_ban_name")
@@ -304,5 +344,4 @@ a = ssh_db_tunneling_select('Pluto Plus B1', 'student')
 #          "test_parents_email", 1, "test_teacher_name", 1, "test_ban_name", 0, "test_content", "etc", 1),
 #     ))
 # for i in a:
-#     print(i['id'])
-#     print(i['register_no'])
+#     print(i)
