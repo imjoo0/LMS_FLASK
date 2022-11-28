@@ -88,7 +88,7 @@ def ssh_db_tunneling_select(class_name, types):
 
                 elif types == 'class':
                     cur.execute(
-                        f'select * from class C where C.id IN (select A.class_id from teacher_allocation A where A.teacher_id = "{class_name}"')
+                        f'select * from class C where C.id IN (select A.class_id from teacher_allocation A where A.teacher_id = {class_name})')
                     rows = cur.fetchall()
                     cur.execute(f'SHOW columns FROM class;')
                     cols = cur.fetchall()
@@ -98,6 +98,7 @@ def ssh_db_tunneling_select(class_name, types):
                 data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
 
         except:
+            print(traceback.format_exc())
             print("fail")
             data_list = []
         finally:
@@ -136,6 +137,40 @@ def ssh_db_tunneling_select_class():
         finally:
             db.close()
             return data_list
+
+
+def ssh_db_tunneling_select_teachers():
+    with SSHTunnelForwarder(
+        ('15.164.36.206'),
+        ssh_username="ec2-user",
+        ssh_pkey="D:/purple_academy_privkey.pem",
+        remote_bind_address=('purple-lms-mariadb-1.cdpnol1tlujr.ap-northeast-2.rds.amazonaws.com', 3306)
+    ) as tunnel:
+        print("=== SSH Tunnel ===")
+
+        db = pymysql.connect(
+            host='127.0.0.1', user="readonly",
+            password="purpledbreadonly12!@", port=tunnel.local_bind_port, database='purple-lms'
+        )
+        try:
+            with db.cursor() as cur:
+                # ['id', 'class_type', 'section_id', 'subject_id', 'is_regular', 'name', 'week_auto', 'week', 'start_date', 'end_date', 'name_numeric', 'created_at', 'updated_at', 'branch_id', 'schedule_file_name', 'schedule_enc_name', 'timetable_id', 'is_ended', 'rewriting_class']
+                cur.execute(f'SELECT * FROM staff;;')
+                rows = cur.fetchall()
+                cur.execute(f'SHOW columns FROM staff;')
+                cols = cur.fetchall()
+
+                row_list = [list(rows[x]) for x in range(len(rows))]
+                col_list = [list(cols[x])[0] for x in range(len(cols))]
+                data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
+
+        except:
+            print("fail")
+            data_list = []
+        finally:
+            db.close()
+            return data_list
+
 
 
 def ssh_db_tunneling_select_student():
@@ -270,7 +305,8 @@ def select_todo_list(class_name):
 
 # a = ssh_db_tunneling_select('Pluto Plus B1', 'teacher')
 # a = ssh_db_tunneling_select('Pluto Plus B1', 'student')
-a = ssh_db_tunneling_select('71', 'class')
+# a = ssh_db_tunneling_select('Pluto Plus B1', 'parents')
+a = ssh_db_tunneling_select(71, 'class')
 # a = ssh_db_tunneling_select_class()
 # a = ssh_db_tunneling_select_student()
 # a = select_todo_list("ban1")
