@@ -1,6 +1,7 @@
+import traceback
+
 import pymysql
 from sshtunnel import SSHTunnelForwarder
-import pandas as pd
 
 # create table consulting_list
 # (
@@ -77,26 +78,29 @@ def ssh_db_tunneling_select(class_name, types):
                     cols = cur.fetchall()
 
                 elif types == 'parents':
-                    # [A.id, A.register_no, A.first_name as 학생이름, A.email, B.name, B.email, B.mobileno]
-                    cur.execute(f'select A.id, A.register_no, A.first_name as 학생이름, A.email, B.name, B.email, B.mobileno from student A join parent B on (A.parent_id = B.id and A.main_class_id in (select C.id from class C where C.name = "{class_name}"));')
-                    # cur.execute(f'select * from student A join parent B on (A.parent_id = B.id and A.main_class_id in (select C.id from class C where C.name = "{class_name}"));')
+                    cur.execute(f'SHOW columns FROM student;')
+                    cur.execute(f'select * from student A join parent B on (A.parent_id = B.id and A.main_class_id in (select C.id from class C where C.name = "{class_name}"));')
                     rows = cur.fetchall()
-                    cur.execute(f'SHOW columns FROM staff;')
+                    cur.execute(f'SHOW columns FROM student;')
+                    cols = list(cur.fetchall())
+                    cur.execute(f'SHOW columns FROM parent;')
+                    cols += list(cur.fetchall())
+
+                elif types == 'class':
+                    cur.execute(
+                        f'select * from class C where C.id IN (select A.class_id from teacher_allocation A where A.teacher_id = {class_name})')
+                    rows = cur.fetchall()
+                    cur.execute(f'SHOW columns FROM class;')
                     cols = cur.fetchall()
 
-                row_list = []
-                for i in rows:
-                    row_list.append(list(i))
+                row_list = [list(rows[x]) for x in range(len(rows))]
+                col_list = [list(cols[x])[0] for x in range(len(cols))]
+                data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
 
-                col_list = []
-                for i in cols:
-                    col_list.append(i[0])
-
-                data_list = []
-                for i in row_list:
-                    data_list.append({name: value for name, value in zip(col_list, i)}.copy())
         except:
+            print(traceback.format_exc())
             print("fail")
+            data_list = []
         finally:
             db.close()
             return data_list
@@ -118,29 +122,22 @@ def ssh_db_tunneling_select_class():
         try:
             with db.cursor() as cur:
                 # ['id', 'class_type', 'section_id', 'subject_id', 'is_regular', 'name', 'week_auto', 'week', 'start_date', 'end_date', 'name_numeric', 'created_at', 'updated_at', 'branch_id', 'schedule_file_name', 'schedule_enc_name', 'timetable_id', 'is_ended', 'rewriting_class']
-                cur.execute(f'SELECT * FROM class;;')
+                cur.execute(f'SELECT * FROM class;')
                 rows = cur.fetchall()
                 cur.execute(f'SHOW columns FROM class;')
                 cols = cur.fetchall()
 
-                row_list = []
-                for i in rows:
-                    row_list.append(list(i))
-
-                col_list = []
-                for i in cols:
-                    col_list.append(i[0])
-
-                data_list = []
-                for i in row_list:
-                    data_list.append({name: value for name, value in zip(col_list, i)}.copy())
-
+                row_list = [list(rows[x]) for x in range(len(rows))]
+                col_list = [list(cols[x])[0] for x in range(len(cols))]
+                data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
 
         except:
             print("fail")
+            data_list = []
         finally:
             db.close()
             return data_list
+
 
 def ssh_db_tunneling_select_teachers():
     with SSHTunnelForwarder(
@@ -163,24 +160,18 @@ def ssh_db_tunneling_select_teachers():
                 cur.execute(f'SHOW columns FROM staff;')
                 cols = cur.fetchall()
 
-                row_list = []
-                for i in rows:
-                    row_list.append(list(i))
-
-                col_list = []
-                for i in cols:
-                    col_list.append(i[0])
-
-                data_list = []
-                for i in row_list:
-                    data_list.append({name: value for name, value in zip(col_list, i)}.copy())
-
+                row_list = [list(rows[x]) for x in range(len(rows))]
+                col_list = [list(cols[x])[0] for x in range(len(cols))]
+                data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
 
         except:
             print("fail")
+            data_list = []
         finally:
             db.close()
             return data_list
+
+
 
 def ssh_db_tunneling_select_student():
     with SSHTunnelForwarder(
@@ -203,19 +194,13 @@ def ssh_db_tunneling_select_student():
                 cur.execute(f'SHOW columns FROM student;')
                 cols = cur.fetchall()
 
-                row_list = []
-                for i in rows:
-                    row_list.append(list(i))
+                row_list = [list(rows[x]) for x in range(len(rows))]
+                col_list = [list(cols[x])[0] for x in range(len(cols))]
+                data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
 
-                col_list = []
-                for i in cols:
-                    col_list.append(i[0])
-
-                data_list = []
-                for i in row_list:
-                    data_list.append({name: value for name, value in zip(col_list, i)}.copy())
         except:
             print("fail")
+            data_list = []
         finally:
             db.close()
             return data_list
@@ -240,19 +225,14 @@ def select_consulting(class_name):
                 f'SHOW columns FROM consulting_list;')
             cols = cur.fetchall()
 
-            row_list = []
-            for i in rows:
-                row_list.append(list(i))
+            row_list = [list(rows[x]) for x in range(len(rows))]
+            col_list = [list(cols[x])[0] for x in range(len(cols))]
+            data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
 
-            col_list = []
-            for i in cols:
-                col_list.append(i[0])
-
-            data_list = []
-            for i in row_list:
-                data_list.append({name: value for name, value in zip(col_list, i)}.copy())
     except:
         print("fail")
+        data_list = []
+
     finally:
         db.close()
         return data_list
@@ -286,9 +266,9 @@ def insert_consulting(data):
                 cur.executemany(sql, data)
             db.commit()
         print(200)
+
     except:
         print("fail")
-
     finally:
         db.close()
 
@@ -306,36 +286,30 @@ def select_todo_list(class_name):
         with db.cursor() as cur:
             cur.execute(f'select * from teacher_todo_list where ban_name = "{class_name}";')
             rows = cur.fetchall()
-
             cur.execute(
                 f'SHOW columns FROM consulting_list;')
             cols = cur.fetchall()
 
-            row_list = []
-            for i in rows:
-                row_list.append(list(i))
+            row_list = [list(rows[x]) for x in range(len(rows))]
+            col_list = [list(cols[x])[0] for x in range(len(cols))]
+            data_list = [{name: value for name, value in zip(col_list, i)}.copy() for i in row_list]
 
-            col_list = []
-            for i in cols:
-                col_list.append(i[0])
-
-            data_list = []
-            for i in row_list:
-                data_list.append({name: value for name, value in zip(col_list, i)}.copy())
     except:
         print("fail")
+        data_list = []
+
     finally:
         db.close()
         return data_list
 
 
-# a, b = ssh_db_tunneling_select('Pluto Plus B1', 'teacher')
-# a = ssh_db_tunneling_select_class()
-# a, b = ssh_db_tunneling_select_student()
-# a = ssh_db_tunneling_select_teachers()
+# a = ssh_db_tunneling_select('Pluto Plus B1', 'teacher')
 # a = ssh_db_tunneling_select('Pluto Plus B1', 'student')
-# ssh_db_tunneling_select('Pluto Plus B1', 'parents')
-# select_todo_list("ban1")
+# a = ssh_db_tunneling_select('Pluto Plus B1', 'parents')
+a = ssh_db_tunneling_select(71, 'class')
+# a = ssh_db_tunneling_select_class()
+# a = ssh_db_tunneling_select_student()
+# a = select_todo_list("ban1")
 # select_consulting("test_ban_name")
 # insert_consulting((
 #         (2, "P111112", "test_student_name", "010-1111-1111", 1, "test_parents_name", "010-2222-2222",
@@ -343,5 +317,5 @@ def select_todo_list(class_name):
 #         (2, "P111112", "test_student_name", "010-1111-1111", 1, "test_parents_name", "010-2222-2222",
 #          "test_parents_email", 1, "test_teacher_name", 1, "test_ban_name", 0, "test_content", "etc", 1),
 #     ))
-# for i in a:
-#     print(i)
+for i in a:
+    print(i)
